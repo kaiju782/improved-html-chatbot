@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCS3200 색상 분류 시스템 챗봇</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #chat-container {
+            width: 350px;
+            height: 500px;
+            border: 1px solid #ccc;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        #user-input {
+            display: flex;
+            border-top: 1px solid #ccc;
+        }
+        #user-input input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            outline: none;
+        }
+        #user-input button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            max-width: 80%;
+        }
+        .user {
+            background-color: #e1f5fe;
+            text-align: right;
+            margin-left: auto;
+        }
+        .bot {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-messages"></div>
+        <div id="user-input">
+            <input type="text" id="user-message" placeholder="질문을 입력하세요...">
+            <button onclick="sendMessage()">전송</button>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chat-messages');
+        const userMessageInput = document.getElementById('user-message');
+
+        const botResponses = {
+            "제작자": "이 프로젝트는 선문대학교 기계공학과의 양정모, 유승준, 김대헌 학생들이 개발했습니다. 지도교수는 유동주 교수님입니다.",
+            "참가자": "이 프로젝트의 참가자는 선문대학교 기계공학과 학생 양정모, 유승준, 김대헌입니다. 지도교수로 유동주 교수님이 참여하셨습니다.",
+            "휘도": "휘도는 광원의 밝기를 나타내는 중요한 지표입니다. 본 프로젝트에서는 적분구 설계 최적화를 통해 평균 휘도를 25% 증가시켰습니다. 이는 더 정확한 색상 인식을 가능하게 합니다.",
+            "전망": "이 시스템은 식품 산업, 재활용, 품질 관리 등 다양한 분야에서 활용될 전망입니다. 향후 더 넓은 범위의 색상 감지와 처리 속도 향상에 초점을 맞출 예정입니다.",
+            "lighttools": "LightTools는 광학 시스템 설계 및 분석을 위한 전문 소프트웨어입니다. 이 프로젝트에서는 적분구 내부의 빛 분포를 시뮬레이션하는 데 사용되었습니다.",
+            "부품": "주요 부품으로는 TCS3200 색상 센서, Arduino Uno R3, MG995 및 SG90 서보모터, 적분구, 그리고 LCD 디스플레이가 사용되었습니다.",
+            "tcs3200": "TCS3200은 본 프로젝트의 주요 색상 감지 센서입니다. 빛의 강도를 주파수로 변환하여 색상을 감지합니다.",
+            "적분구": "적분구는 내부 표면이 빛을 산란시키는 광학 장치입니다. 곡면 배플 설계와 티타늄 화이트 코팅을 적용하여 균일한 빛 분포를 얻었습니다.",
+            "아두이노": "Arduino Uno R3를 사용하여 센서 데이터 처리와 모터 제어를 수행했습니다.",
+            "서보모터": "MG995와 SG90 서보모터로 턴테이블과 미끄럼틀을 제어했습니다.",
+            "광학시뮬레이션": "LightTools 소프트웨어로 적분구 내부 빛 분포를 시뮬레이션했습니다. 곡면 배플 설계로 평균 휘도가 25% 증가했습니다.",
+            "색상인식": "RGB에서 HSV로의 변환과 적응형 보정을 포함한 알고리즘을 개발했습니다. 12개 색상 샘플에 대해 평균 74.06%의 RGB 유사도를 달성했습니다.",
+            "성능": "시스템은 분당 4.96개 객체를 처리할 수 있으며, 다양한 조명 조건에서 일관된 성능을 유지합니다.",
+            "응용분야": "이 시스템은 식품 산업, 재활용, 품질 관리 등 다양한 분야에 적용될 수 있습니다.",
+            "연구목표": "본 연구의 목표는 TCS3200 색상 센서와 최적화된 적분구를 통합하여 동적 조명 환경에서 색상 분류의 정확도와 신뢰성을 향상시키는 것입니다.",
+            "프로젝트기간": "이 프로젝트는 2024년 1학기 동안 진행되었습니다.",
+            "주요성과": "곡면 배플 설계로 평균 휘도 25% 증가, 12개 색상 샘플에 대해 평균 74.06%의 RGB 유사도 달성, 분당 4.96개 객체 처리 능력 등이 주요 성과입니다.",
+            "적분구설계": "적분구는 곡면 배플 설계를 적용하여 빛의 균일한 분포를 얻었습니다. 내부는 티타늄 화이트로 코팅하여 반사율을 높였습니다.",
+            "색상샘플": "주로 스키틀즈 캔디를 사용하여 다양한 색상에 대한 테스트를 진행했습니다.",
+            "처리속도": "현재 시스템은 분당 약 4.96개의 객체를 처리할 수 있습니다.",
+            "정확도": "12개의 색상 샘플에 대해 평균 74.06%의 RGB 유사도를 달성했습니다.",
+            "개선점": "향후 연구에서는 더 넓은 범위의 색상 감지와 처리 속도 향상에 초점을 맞출 예정입니다.",
+            "도전과제": "동적 조명 환경에서의 정확한 색상 인식과 실시간 처리 속도 향상이 주요 도전 과제였습니다.",
+            "소프트웨어": "Arduino IDE를 사용하여 프로그래밍했으며, LightTools로 광학 시뮬레이션을 수행했습니다.",
+            "하드웨어": "TCS3200 센서, Arduino Uno R3, 서보모터, 적분구, LCD 디스플레이 등이 주요 하드웨어 구성요소입니다.",
+            "알고리즘": "RGB에서 HSV로의 변환과 적응형 보정을 포함한 색상 인식 알고리즘을 개발했습니다.",
+            "제작비용": "정확한 제작 비용은 공개할 수 없지만, 대부분의 부품은 일반적으로 구할 수 있는 저렴한 제품들을 사용했습니다.",
+            "에너지효율": "저전력 부품을 사용하여 에너지 효율을 최적화했습니다.",
+            "유지보수": "모듈화된 설계로 각 부품의 교체와 업그레이드가 용이합니다.",
+            "안전성": "모든 부품은 안전 기준을 준수하며, 사용자에게 위험을 주지 않도록 설계되었습니다.",
+            "특허": "현재 특허 출원을 고려 중이며, 구체적인 내용은 아직 공개할 수 없습니다.",
+            "경쟁기술": "기존의 색상 분류 시스템들과 비교하여 더 높은 정확도와 안정성을 제공합니다.",
+            "시장잠재력": "식품 산업, 재활용, 품질 관리 등 다양한 분야에서 높은 시장 잠재력을 가지고 있습니다.",
+            "협력기관": "현재는 대학 내 프로젝트로 진행되었지만, 향후 산업체와의 협력을 모색 중입니다.",
+            "발표이력": "2024년 국제 공동 학술대회에서 본 연구 결과를 발표할 예정입니다.",
+            "연구비": "대학 내 캡스톤 디자인 프로젝트 지원금으로 연구를 진행했습니다.",
+            "팀구성": "기계공학과 학생 3명(양정모, 유승준, 김대헌)과 지도교수 1명(유동주 교수)으로 팀이 구성되었습니다.",
+            "역할분담": "양정모: 보고서 작성, 유승준: 설계, 김대헌: 프로그래밍을 주로 담당했습니다.",
+            "개발환경": "Arduino IDE, LightTools, 3D 프린팅 기술 등을 활용하여 개발했습니다.",
+            "테스트방법": "다양한 색상의 스키틀즈 캔디를 사용하여 시스템의 색상 인식 정확도를 테스트했습니다.",
+            "개선사항": "향후 더 많은 색상 범위를 인식할 수 있도록 알고리즘을 개선할 예정입니다.",
+            "문제해결": "초기에 조명 변화에 따른 색상 인식 오류 문제가 있었지만, 적분구 설계 최적화로 해결했습니다.",
+            "학습곡선": "프로젝트 초기에는 광학 이론과 센서 기술 학습에 시간이 걸렸지만, 팀원들의 노력으로 극복했습니다.",
+            "성과평가": "색상 인식 정확도, 처리 속도, 시스템 안정성 등을 종합적으로 평가했습니다.",
+            "피드백": "교내 평가에서 높은 점수를 받았으며, 실용성에 대해 긍정적인 피드백을 받았습니다.",
+            "후속연구": "더 넓은 색상 범위 인식, 처리 속도 향상, 산업 현장 적용 테스트 등을 계획하고 있습니다.",
+            "기대효과": "산업 현장에서의 색상 분류 자동화로 생산성 향상과 품질 관리 개선이 기대됩니다.",
+            "한계점": "현재는 제한된 색상 범위와 처리 속도에 한계가 있지만, 지속적인 개선을 통해 극복해 나갈 예정입니다.",
+            "확장가능성": "다양한 산업 분야에 적용 가능하며, 추가 센서 통합으로 기능 확장이 가능합니다.",
+            "영감": "산업 현장에서의 색상 분류 자동화 필요성에서 영감을 받아 프로젝트를 시작했습니다.",
+            "기술적도전": "적분구 설계 최적화와 실시간 색상 인식 알고리즘 개발이 주요 기술적 도전이었습니다.",
+            "미래계획": "산업체와의 협력을 통해 실제 현장에서의 적용 및 상용화를 목표로 하고 있습니다.",
+            "티타늄화이트": "티타늄 화이트는 이산화티타늄(TiO2)을 주성분으로 하는 안료입니다. 본 프로젝트에서는 적분구 내부 코팅에 사용되었으며, 높은 반사율(약 95%)과 뛰어난 내구성으로 인해 선택되었습니다. 이 코팅은 적분구 내부에서 빛의 균일한 분산을 돕고, 색상 감지의 정확도를 향상시키는 데 중요한 역할을 합니다.",
+            "인재양성": "이 프로젝트를 통해 학생들이 실제 문제 해결 능력과 팀워크 역량을 키울 수 있었습니다. 또한 광학, 센서 기술, 프로그래밍 등 다양한 분야의 지식을 통합적으로 적용하는 경험을 제공했습니다."
+        };
+
+        function sendMessage() {
+            const userMessage = userMessageInput.value.trim();
+            if (userMessage === '') return;
+
+            addMessage(userMessage, 'user');
+            userMessageInput.value = '';
+
+            const botResponse = getBotResponse(userMessage);
+            setTimeout(() => addMessage(botResponse, 'bot'), 500);
+        }
+
+        function addMessage(message, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', sender);
+            messageElement.textContent = message;
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function getBotResponse(userMessage) {
+            const lowerUserMessage = userMessage.toLowerCase();
+            for (const [key, value] of Object.entries(botResponses)) {
+                if (lowerUserMessage.includes(key.toLowerCase())) {
+                    return value;
+                }
+            }
+            return "죄송합니다. 해당 질문에 대한 정보를 찾을 수 없습니다. 다른 질문을 해주시겠습니까?";
+        }
+
+        userMessageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
